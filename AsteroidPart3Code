@@ -1,0 +1,337 @@
+Spaceship xwing;
+Star [] starryNight;
+ArrayList <Bullet> ammo;
+ArrayList <Asteroid> astList;
+boolean w, a, s, d;
+public void setup()
+{
+  w = false;
+  a = false;
+  s = false;
+  d = false;
+  size(1000, 1000);
+  ammo = new ArrayList <Bullet>();
+  astList = new ArrayList <Asteroid>();
+  xwing = new Spaceship();
+  for (int i = 0; i <20; i++)
+  {
+    astList.add(new Asteroid());
+  }
+  starryNight = new Star[400];
+  for (int i =0; i < starryNight.length; i++)
+  {
+    starryNight[i] = new Star();
+  }
+}
+public void draw()
+{
+  background(0);
+  text("use w, a, s, and d to move. Press the spacebar to shoot", 10, 50);
+  for (int i = 0; i<starryNight.length; i++)
+  {
+    starryNight[i].show();
+  }
+  for (Asteroid rock : astList)
+  {
+    rock.move();
+    rock.show();
+  }
+  for (int i = astList.size()-1; i>=  0; i--) {
+    Asteroid anAst = astList.get(i);
+    if (anAst.collide()) {
+      astList.remove(i);
+    }
+  }
+  for (int i = astList.size()-1; i >= 0; i--)
+  {
+    if (dist((float)xwing.getX(), (float)xwing.getY(), (float)astList.get(i).myCenterX, (float)astList.get(i).myCenterY)<20) {
+      astList.remove(i);
+    }
+  }
+  xwing.show();
+  xwing.move();
+  for (int i = ammo.size()-1; i>=0; i--) {
+    ammo.get(i).move();
+    ammo.get(i).show();
+    if (ammo.get(i).getX()>width) {
+      ammo.remove(i);
+    } else if (ammo.get(i).getY()>height) {
+      ammo.remove(i);
+    } else if (ammo.get(i).getY()<0) {
+      ammo.remove(i);
+    } else if (ammo.get(i).getX()<0) {
+      ammo.remove(i);
+    }
+  }
+  if (w) {
+    xwing.accelerate(0.1);
+  }
+  if (a) {
+    xwing.turn(-4);
+  }
+  if (s) {
+    xwing.accelerate(-0.1);
+  }
+  if (d) {
+    xwing.turn(4);
+  }
+}
+public void keyPressed()
+{
+  if (key == 'h')
+  {
+    xwing.setXspeed(0);
+    xwing.setYspeed(0);
+    xwing.setX(Math.random()*width);
+    xwing.setY(Math.random()*height);
+    xwing.setDirection(Math.random()*360);
+  }
+  if (key == 'w')
+  {
+    w = true;
+  }
+  if (key == 's')
+  {
+    s = true;
+  }
+  if (key == 'a')
+  {
+    a = true;
+  }
+  if (key == 'd')
+  {
+    d = true;
+  }
+}
+public void keyReleased()
+{
+  if (key == 'w')
+  {
+    w = false;
+  }
+  if (key == 's')
+  {
+    s = false;
+  }
+  if (key == 'a')
+  {
+    a = false;
+  }
+  if (key == 'd')
+  {
+    d = false;
+  }
+  if (key == ' ')
+
+  ammo.add(new Bullet(xwing));
+}
+class Asteroid extends Floater {
+  private double rotSpeed;
+  public Asteroid() {
+    corners = 7;
+    xCorners = new int[] {-25, -10, 10, 0, 15, 15, 0};
+    yCorners = new int[] {-7, 0, 10, 15, 10, -7, -12};
+    myCenterX = (int)(Math.random()*width);
+    myCenterY  = (int)(Math.random()*height);
+    myColor = color(255);
+    setXspeed((int)(Math.random()*7)-4);
+    setYspeed((int)(Math.random()*7)-4);
+    myPointDirection = (int)(Math.random()*360);
+    setTurnSpeed((Math.random()*9));
+  }
+  public void setX(double x) {
+    myCenterX = x;
+  }
+  public void setY(double y) {
+    myCenterY = y;
+  }
+  public double getX() {
+    return myCenterX;
+  }
+  public double getY() {
+    return myCenterY;
+  }
+  public void setXspeed(double x) {
+    myXspeed = x;
+  }
+  public void setYspeed(double y) {
+    myYspeed = y;
+  }
+  public void setTurnSpeed(double r) {
+    rotSpeed = r;
+  }
+  public void move() {
+    turn(rotSpeed);
+    super.move();
+  }
+  public Boolean collide() {
+    Boolean collided = false;
+    for (int i = ammo.size()-1; i >=0; i--) {
+      Bullet aBullet = ammo.get(i);
+      if (dist((float)aBullet.getX(), (float)aBullet.getY(), (float)getX(), (float)getY())<10) {
+        ammo.remove(i);
+        collided = true;
+        break;
+      }
+    }
+    return collided;
+  }
+}
+class Bullet extends Floater {
+  Bullet(Spaceship xwing)
+  {
+    myCenterX = xwing.getX();
+    myCenterY = xwing.getY();
+    myXspeed = xwing.getXSpeed();
+    myYspeed = xwing.getYSpeed();
+    myPointDirection = xwing.getPointDirection();
+    accelerate(10);
+  }
+  public void show() {
+    ellipse((float)myCenterX, (float)myCenterY, 10, 10);
+  }
+  public void move ()
+  {
+    myCenterX += myXspeed;
+    myCenterY += myYspeed;
+  }
+  public double getX() {
+    return myCenterX;
+  }
+  public double getY() {
+    return myCenterY;
+  }
+}
+class Floater //Do NOT modify the Floater class! Make changes in the Spaceship class
+{
+  protected int corners;  //the number of corners, a triangular floater has 3
+  protected int[] xCorners;
+  protected int[] yCorners;
+  protected int myColor;
+  protected double myCenterX, myCenterY; //holds center coordinates
+  protected double myXspeed, myYspeed; //holds the speed of travel in the x and y directions
+  protected double myPointDirection; //holds current direction the ship is pointing in degrees
+  //Accelerates the floater in the direction it is pointing (myPointDirection)
+  public void accelerate (double dAmount)
+  {
+    //convert the current direction the floater is pointing to radians
+    double dRadians =myPointDirection*(Math.PI/180);
+    //change coordinates of direction of travel
+    myXspeed += ((dAmount) * Math.cos(dRadians));
+    myYspeed += ((dAmount) * Math.sin(dRadians));
+  }
+  public void turn (double degreesOfRotation)
+  {
+    //rotates the floater by a given number of degrees
+    myPointDirection+=degreesOfRotation;
+  }
+  public void move ()   //move the floater in the current direction of travel
+  {
+    //change the x and y coordinates by myXspeed and myYspeed
+    myCenterX += myXspeed;
+    myCenterY += myYspeed;
+    //wrap around screen
+    if(myCenterX >width)
+    {
+      myCenterX = 0;
+    }
+    else if (myCenterX<0)
+    {
+      myCenterX = width;
+    }
+    if(myCenterY >height)
+    {
+      myCenterY = 0;
+    }
+    else if (myCenterY < 0)
+    {
+      myCenterY = height;
+    }
+  }
+  public void show ()  //Draws the floater at the current position
+  {
+    fill(myColor);
+    stroke(1);
+    //translate the (x,y) center of the ship to the correct position
+    translate((float)myCenterX, (float)myCenterY);
+    //convert degrees to radians for rotate()
+    float dRadians = (float)(myPointDirection*(Math.PI/180));
+    //rotate so that the polygon will be drawn in the correct direction
+    rotate(dRadians);
+    //draw the polygon
+    beginShape();
+    for (int nI = 0; nI < corners; nI++)
+    {
+      vertex(xCorners[nI], yCorners[nI]);
+    }
+    endShape(CLOSE);
+    //“unrotate” and “untranslate” in reverse order
+    rotate(-1*dRadians);
+    translate(-1*(float)myCenterX, -1*(float)myCenterY);
+  }
+}
+class Spaceship extends Floater
+{
+ public Spaceship(){
+   corners = 6;
+   xCorners = new int [] {-8, 16, -8, -3, -7, -3};
+   yCorners = new int [] {-8, 0, 8, 3,0, -3};
+   myColor = 255;
+   myCenterX = width/2;
+   myCenterY = height/2;
+   myXspeed = 0;
+   myYspeed = 0;
+   myPointDirection = 0;
+ }
+ public void setXspeed(double x) {
+    myXspeed = x;
+  }
+   public void setYspeed(double y) {
+    myYspeed = y;
+  }
+   public void setX(double x) {
+    myCenterX = x;
+  }
+   public void setY(double y) {
+    myCenterY = y;
+  }
+  public double getXSpeed(){
+    return myXspeed;
+  }
+  public double getYSpeed()
+  {
+    return myYspeed;
+  }
+  public double getPointDirection()
+  {
+    return myPointDirection;
+  }
+  public double getX()
+  {
+    return myCenterX;
+  }
+  public double getY()
+  {
+    return myCenterY;
+  }
+     public void setDirection(double d) {
+    myPointDirection = d;
+  }
+}
+class Star
+{
+  private int starColor;
+  private int starX;
+  private int starY;
+  public Star() {
+    starColor = color((int) (Math.random()*255),(int) (Math.random()*255),(int) (Math.random()*255));
+    starX = (int) (Math.random()*width);
+    starY = (int) (Math.random()*height);
+  }
+  public void show ()
+  {
+    fill(starColor);
+    stroke(1);
+    ellipse(starX, starY, 3, 3);
+  }
+}
